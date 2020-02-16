@@ -83,7 +83,7 @@ Resources:
                             id: 10
                             first_name: Bharath
                             last_name: sub
-                            age:30
+                            age: 30
                   responses:
                     "200":
                       description: "200 response"
