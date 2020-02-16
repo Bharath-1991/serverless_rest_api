@@ -73,14 +73,17 @@ Resources:
                           properties:
                             id:
                               type: integer
-                            name:
+                            first_name:
                               type: string
-                            company:
+                            last_name:
                               type: string
+                            age:
+                              type: integer
                           example:   # Sample object
                             id: 10
-                            name: Bharath
-                            company: wipro
+                            first_name: Bharath
+                            last_name: sub
+                            age:30
                   responses:
                     "200":
                       description: "200 response"
@@ -114,14 +117,17 @@ Resources:
                           properties:
                             id:
                               type: integer
-                            name:
+                            first_name:
                               type: string
-                            company:
+                            last_name:
                               type: string
+                            age:
+                              type: integer
                           example:   # Sample object
                             id: 10
-                            name: Bharath
-                            company: wipro
+                            first_name: Bharath
+                            last_name: sub
+                            age:30
                   responses:
                     "200":
                       description: "200 response"
