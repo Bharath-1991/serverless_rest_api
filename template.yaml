@@ -1,0 +1,307 @@
+---
+AWSTemplateFormatVersion : '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Simple API gateway  and lambda integration example
+
+
+Resources:
+
+  PublicApi:
+    Type: AWS::Serverless::Api
+    Properties:
+        StageName: dev
+        Auth:
+          DefaultAuthorizer: MyLambdaTokenAuthorizer
+          Authorizers:
+            MyLambdaTokenAuthorizer:
+              FunctionArn:
+                Fn::GetAtt:
+                  - MyAuthFunction
+                  - Arn
+              Identity:
+                ReauthorizeEvery: 0
+        DefinitionBody:
+            swagger: 2.0
+            info:
+              title:
+                Ref: AWS::StackName
+            paths:
+              /employee: # api gateway invokes lambda synchronously, which in turn invokes the stepfunction and waits for its final result
+                get:
+                  produces:
+                    - "application/json"
+                  parameters:
+                    - in: query
+                      name: name
+                      description: |
+                        The string value
+
+                        An example value would be 'bharath'
+                      required: true
+                  responses:
+                    "200":
+                      description: "200 response"
+                      schema:
+                        $ref: "#/definitions/Empty"
+                      headers:
+                        Access-Control-Allow-Headers:
+                          type: "string"
+                  security: []
+                  x-amazon-apigateway-integration:
+                    responses:
+                      default:
+                        statusCode: "200"
+                        headers:
+                          Access-Control-Allow-Headers:
+                            type: "'*'"
+                    httpMethod: POST
+                    type: aws_proxy
+                    credentials: !GetAtt APIGatewayRole.Arn
+                    uri:
+                      Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${EmployeeDetails.Arn}/invocations
+                post:
+                  summary: Adds a new employee record
+                  description: |
+                    Creates a new employee in the DynamoDB backend database.
+                  produces:
+                    - "application/json"
+                  requestBody:
+                    content:
+                      application/json:
+                        schema:      # Request body contents
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                            name:
+                              type: string
+                            company:
+                              type: string
+                          example:   # Sample object
+                            id: 10
+                            name: Bharath
+                            company: wipro
+                  responses:
+                    "200":
+                      description: "200 response"
+                      schema:
+                        $ref: "#/definitions/Empty"
+                      headers:
+                        Access-Control-Allow-Headers:
+                          type: "string"
+                  security: []
+                  x-amazon-apigateway-integration:
+                    responses:
+                      default:
+                        statusCode: "200"
+                        headers:
+                          Access-Control-Allow-Headers:
+                            type: "'*'"
+                    httpMethod: POST
+                    type: aws_proxy
+                    credentials: !GetAtt APIGatewayRole.Arn
+                    uri:
+                      Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${EmployeeDetails.Arn}/invocations
+                put:
+                  summary: Update a employee record
+                  description: |
+                    Updates employee in the DynamoDB backend database.
+                  requestBody:
+                    content:
+                      application/json:
+                        schema:      # Request body contents
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                            name:
+                              type: string
+                            company:
+                              type: string
+                          example:   # Sample object
+                            id: 10
+                            name: Bharath
+                            company: wipro
+                  responses:
+                    "200":
+                      description: "200 response"
+                      schema:
+                        $ref: "#/definitions/Empty"
+                      headers:
+                        Access-Control-Allow-Headers:
+                          type: "string"
+                  security: []
+                  x-amazon-apigateway-integration:
+                      responses:
+                        default:
+                          statusCode: "200"
+                          headers:
+                            Access-Control-Allow-Headers:
+                              type: "'*'"
+                      httpMethod: POST
+                      type: aws_proxy
+                      credentials: !GetAtt APIGatewayRole.Arn
+                      uri:
+                        Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${EmployeeDetails.Arn}/invocations
+                delete:
+                  description: deletes a single employee based on the ID supplied
+                  operationId: deleteemployee
+                  parameters:
+                    - name: id
+                      in: path
+                      description: ID of employee to delete
+                      required: true
+                      type: integer
+                      format: int64
+                  responses:
+                    "200":
+                      description: pet deleted
+                    default:
+                      description: unexpected error
+                      schema:
+                        $ref: '#/definitions/Error'
+                  x-amazon-apigateway-integration:
+                    responses:
+                      default:
+                        statusCode: "200"
+                        headers:
+                          Access-Control-Allow-Headers:
+                            type: "'*'"
+                    httpMethod: POST
+                    type: aws_proxy
+                    credentials: !GetAtt APIGatewayRole.Arn
+                    uri:
+                      Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${EmployeeDetails.Arn}/invocations
+              /session:
+                post:
+                  summary: Adds a new session
+                  description: |
+                    Creates a new session .
+                  produces:
+                    - "application/json"
+                  requestBody:
+                    content:
+                      application/json:
+                        schema:      # Request body contents
+                          type: object
+                          properties:
+                            user_id:
+                              type: string
+                            password:
+                              type: string
+                          example:   # Sample object
+                            user_id: test
+                            name: test
+                  responses:
+                    "200":
+                      description: "200 response"
+                      schema:
+                        $ref: "#/definitions/Empty"
+                      headers:
+                        Access-Control-Allow-Headers:
+                          type: "string"
+                  security: []
+                  x-amazon-apigateway-integration:
+                    responses:
+                      default:
+                        statusCode: "200"
+                        headers:
+                          Access-Control-Allow-Headers:
+                            type: "'*'"
+                    httpMethod: POST
+                    type: aws_proxy
+                    credentials: !GetAtt APIGatewayRole.Arn
+                    uri:
+                      Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${SessionToken.Arn}/invocations
+            definitions:
+              Empty:
+                type: "object"
+                title: "Empty Schema"
+              Error:
+                type: "object"
+                title: "Empty Schema"
+
+  # Role which allows API Gateway to execute step functions and log to cloud watch
+  APIGatewayRole: 
+    Type: AWS::IAM::Role
+    Properties: 
+      AssumeRolePolicyDocument: 
+        Version: "2012-10-17"
+        Statement: 
+          - Effect: Allow
+            Principal: 
+              Service: 
+                - "apigateway.amazonaws.com"
+            Action: "sts:AssumeRole"
+      Path: "/"
+      Policies:
+      - PolicyName: root
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action: "*"
+            Resource: "*"
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: "/"
+      Policies:
+      - PolicyName: root
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - logs:*
+            - dynamodb:*
+            Resource: "*"
+  EmployeeDetails:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EmployeeDetails
+      Handler: employeeDetails.lambda_handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      CodeUri: ./src
+      Runtime: python3.6
+      Timeout: 300
+      Environment:
+        Variables:
+          databaseName: EmployeeTable
+  SessionToken:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: SessionToken
+      Handler: sessionToken.lambda_handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      CodeUri: ./src/authorizer
+      Runtime: python3.6
+      Timeout: 30
+  EmployeeTable:
+    Type: 'AWS::DynamoDB::Table'
+    Properties:
+      TableName: EmployeeTable
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: N
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+  MyAuthFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./src/authorizer
+      Handler: authorizer.lambda_handler
+      Runtime: python3.7
