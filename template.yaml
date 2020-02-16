@@ -32,11 +32,11 @@ Resources:
                     - "application/json"
                   parameters:
                     - in: query
-                      name: name
+                      name: id
                       description: |
                         The string value
 
-                        An example value would be 'bharath'
+                        An example value would be 24
                       required: true
                   responses:
                     "200":
